@@ -113,7 +113,7 @@ namespace GitCandy.Git
                 scope = new RepositoryScope
                 {
                     Commits = ancestors.Count(),
-                    Contributors = ancestors.GroupBy(s => s.ToString()).Count(),
+                    Contributors = ancestors.SelectMany(a => new[] {a.Committer.Name, a.Author.Name}).Distinct().Count(),
                 };
                 GitCache.Set(commit.Sha, "scope", scope);
             }
@@ -941,8 +941,9 @@ namespace GitCandy.Git
                 }
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.Error("Unable to create repository '{0}'\n{1}", name, ex);
                 try
                 {
                     Directory.Delete(path, true);
@@ -1055,8 +1056,9 @@ namespace GitCandy.Git
                     return output.StartsWith("git version");
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.Error("Unable to verify git path : \n{0}", ex);
                 return false;
             }
         }
